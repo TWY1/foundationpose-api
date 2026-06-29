@@ -26,6 +26,26 @@ except ImportError:
     logger.warning("FoundationPose not available, using mock mode")
 
 
+def _rot_to_quat(R: np.ndarray):
+    trace = R[0, 0] + R[1, 1] + R[2, 2]
+    if trace > 0:
+        s = 0.5 / np.sqrt(trace + 1.0)
+        return [(R[2, 1] - R[1, 2]) * s, (R[0, 2] - R[2, 0]) * s,
+                (R[1, 0] - R[0, 1]) * s, 0.25 / s]
+    elif R[0, 0] > R[1, 1] and R[0, 0] > R[2, 2]:
+        s = 2.0 * np.sqrt(1.0 + R[0, 0] - R[1, 1] - R[2, 2])
+        return [(0.25 * s), (R[0, 1] + R[1, 0]) / s,
+                (R[0, 2] + R[2, 0]) / s, (R[2, 1] - R[1, 2]) / s]
+    elif R[1, 1] > R[2, 2]:
+        s = 2.0 * np.sqrt(1.0 + R[1, 1] - R[0, 0] - R[2, 2])
+        return [(R[0, 1] + R[1, 0]) / s, (0.25 * s),
+                (R[1, 2] + R[2, 1]) / s, (R[0, 2] - R[2, 0]) / s]
+    else:
+        s = 2.0 * np.sqrt(1.0 + R[2, 2] - R[0, 0] - R[1, 1])
+        return [(R[0, 2] + R[2, 0]) / s, (R[1, 2] + R[2, 1]) / s,
+                (0.25 * s), (R[1, 0] - R[0, 1]) / s]
+
+
 class PoseEstimator:
     def __init__(self, weights_dir: str = "/app/weights"):
         self.weights_dir = weights_dir
@@ -156,23 +176,37 @@ class PoseEstimator:
         elapsed = round((time.time() - start) * 1000, 2)
         logger.info(f"Pose {mode} in {elapsed}ms")
 
-        return {
-            "success": True,
-            "pose_matrix": pose.tolist(),
-            "mode": mode,
-            "processing_time_ms": elapsed,
-        }
+        return self._format_response(pose, pose.tolist(), mode, elapsed)
 
     def _predict_mock(self, object_id, start):
         elapsed = round((time.time() - start) * 1000, 2)
         z = 0.3 + (hash(object_id) % 100) / 100.0
         pose = np.eye(4)
         pose[:3, 3] = [0.0, 0.0, z]
+        return self._format_response(pose, pose.tolist(), "mock", elapsed)
+
+    @staticmethod
+    def _format_response(pose_mat, pose_list, mode, elapsed_ms):
+        rot = pose_mat[:3, :3]
+        quat = _rot_to_quat(rot)
         return {
             "success": True,
-            "pose_matrix": pose.tolist(),
-            "mode": "mock",
-            "processing_time_ms": elapsed,
+            "pose_matrix": pose_list,
+            "ros_pose": {
+                "position": {
+                    "x": float(pose_mat[0, 3]),
+                    "y": float(pose_mat[1, 3]),
+                    "z": float(pose_mat[2, 3]),
+                },
+                "orientation": {
+                    "x": float(quat[0]),
+                    "y": float(quat[1]),
+                    "z": float(quat[2]),
+                    "w": float(quat[3]),
+                },
+            },
+            "mode": mode,
+            "processing_time_ms": elapsed_ms,
         }
 
     def is_ready(self) -> bool:

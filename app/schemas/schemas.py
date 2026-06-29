@@ -27,6 +27,7 @@ class PredictRequest(BaseModel):
 class PredictResponse(BaseModel):
     status: str
     pose_matrix: Optional[List[List[float]]] = None
+    ros_pose: Optional[dict] = None
     confidence: Optional[float] = None
     mode: Optional[str] = None
     processing_time_ms: float

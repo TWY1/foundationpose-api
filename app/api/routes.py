@@ -150,6 +150,7 @@ async def predict_json(req: PredictRequest):
     return PredictResponse(
         status="success" if result["success"] else "error",
         pose_matrix=result.get("pose_matrix"),
+        ros_pose=result.get("ros_pose"),
         mode=result.get("mode"),
         processing_time_ms=result.get("processing_time_ms", 0),
         error_message=result.get("error_message"),
@@ -194,6 +195,7 @@ async def predict_upload(
     return PredictResponse(
         status="success" if result["success"] else "error",
         pose_matrix=result.get("pose_matrix"),
+        ros_pose=result.get("ros_pose"),
         mode=result.get("mode"),
         processing_time_ms=result.get("processing_time_ms", 0),
         error_message=result.get("error_message"),
