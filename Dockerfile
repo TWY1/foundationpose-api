@@ -20,7 +20,8 @@ RUN pip3 install --no-cache-dir \
     numpy>=1.26.0 \
     opencv-python-headless>=4.9.0 \
     Pillow>=10.0.0 \
-    trimesh>=4.0.0
+    trimesh>=4.0.0 \
+    huggingface-hub>=0.20.0
 
 # Optional: install YOLO for detect-and-pose pipeline
 RUN pip3 install --no-cache-dir ultralytics>=8.0.0 2>/dev/null || true

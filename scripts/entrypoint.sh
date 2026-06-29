@@ -15,21 +15,19 @@ if [ ! -d "$WEIGHTS_DIR/2024-01-11-20-02-45" ] || [ ! -d "$WEIGHTS_DIR/2023-10-2
     mkdir -p "$WEIGHTS_DIR"
     pip install gdown -q 2>/dev/null
 
-    # Scorer
-    if [ ! -d "$WEIGHTS_DIR/2024-01-11-20-02-45" ]; then
-        echo "  → Downloading scorer weights…"
-        gdown --folder "https://drive.google.com/drive/folders/1EQsS0HdNHpsQmThHgJmpZqMXC3bS1Fnk" \
-            -O "$WEIGHTS_DIR/2024-01-11-20-02-45" --quiet || \
-        echo "  ⚠ Scorer download failed — will run in mock mode for this component"
-    fi
-
-    # Refiner
-    if [ ! -d "$WEIGHTS_DIR/2023-10-28-18-33-37" ]; then
-        echo "  → Downloading refiner weights…"
-        gdown --folder "https://drive.google.com/drive/folders/13QYmrRMqxjKARxaAMt3s2BMEDjIFGoRH" \
-            -O "$WEIGHTS_DIR/2023-10-28-18-33-37" --quiet || \
-        echo "  ⚠ Refiner download failed — will run in mock mode for this component"
-    fi
+    echo "  → Downloading from Hugging Face (gpue/foundationpose-weights)..."
+    pip3 install -q huggingface-hub gdown 2>/dev/null
+    python3 -c "
+from huggingface_hub import snapshot_download
+snapshot_download(repo_id='gpue/foundationpose-weights',
+                  local_dir='$WEIGHTS_DIR',
+                  local_dir_use_symlinks=False)
+" 2>/dev/null || {
+        echo "  Hugging Face failed, trying Google Drive..."
+        gdown --folder "https://drive.google.com/drive/folders/1DFezOAD0oD1BblsXVxqDsl8fj0qzB82i" \
+            -O "$WEIGHTS_DIR" --quiet || \
+        echo "  ⚠ All downloads failed — will run in mock mode"
+    }
 else
     echo "[entrypoint] Model weights found at $WEIGHTS_DIR"
 fi
