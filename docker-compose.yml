@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  foundationpose:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: foundationpose-api:latest
+    container_name: foundationpose-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./weights:/app/weights
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - FOUNDATIONPOSE_WEIGHTS=/app/weights
+      - FOUNDATIONPOSE_DATA=/app/data
+      - LOG_LEVEL=INFO
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    stdin_open: true
+    tty: true
+    restart: unless-stopped

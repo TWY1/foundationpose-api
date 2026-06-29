@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+weights/
+data/output/
+.env
+
+# Exclude uploaded models (UUID filenames), keep generated book models
+data/objects/[0-9a-f]*
+data/objects/*.gitkeep

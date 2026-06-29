@@ -1,0 +1,14 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.git
+.gitignore
+.env
+*.md
+weights/*
+!weights/.gitkeep
+data/objects/*
+!data/objects/.gitkeep
+data/output/*
+!data/output/.gitkeep
